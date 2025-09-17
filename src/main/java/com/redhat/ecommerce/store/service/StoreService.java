@@ -28,6 +28,7 @@ public class StoreService {
     }
 
     private List<Store> getStoreList() {
+        LOG.debug("get store list");
         return List.of(
                 new Store("jakarta", "Jakarta"),
                 new Store("bandung", "Bandung"),

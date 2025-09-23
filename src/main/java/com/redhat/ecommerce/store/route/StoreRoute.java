@@ -2,6 +2,7 @@ package com.redhat.ecommerce.store.route;
 
 import com.redhat.ecommerce.store.service.StoreService;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 
@@ -26,8 +27,8 @@ public class StoreRoute extends RouteBuilder {
         from("direct:get-stores")
                 .routeId("get-stores-api")
                     .log("calling get-stores")
-                    .bean(StoreService.class, "getStores")
-                    .marshal().json(JsonLibrary.Jackson);
+                .bean("storeService", "getStores")
+                .marshal().json(JsonLibrary.Jackson);
     }
 
 }

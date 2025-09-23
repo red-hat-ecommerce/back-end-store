@@ -1,8 +1,12 @@
 package com.redhat.ecommerce.store.service;
 
 import com.redhat.ecommerce.store.model.Store;
+import io.quarkus.panache.common.Sort;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.control.ActivateRequestContext;
+import jakarta.inject.Named;
+import jakarta.transaction.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,24 +21,13 @@ import java.util.List;
  * @author Muhammad Edwin < edwin at redhat dot com >
  * 17 Sep 2025 15:44
  */
-@RegisterForReflection
+@Named("storeService")
 @ApplicationScoped
+@RegisterForReflection
 public class StoreService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(StoreService.class);
-
+    @Transactional
     public List<Store> getStores() {
-        return getStoreList();
+        return Store.listAll(Sort.ascending("storeId"));
     }
-
-    private List<Store> getStoreList() {
-        LOG.debug("get store list");
-        return List.of(
-                new Store("jakarta", "Jakarta"),
-                new Store("bandung", "Bandung"),
-                new Store("medan", "Medan"),
-                new Store("jogjakarta", "Jogjakarta")
-        );
-    }
-
 }

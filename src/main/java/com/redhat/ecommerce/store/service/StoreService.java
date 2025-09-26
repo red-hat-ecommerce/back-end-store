@@ -4,13 +4,10 @@ import com.redhat.ecommerce.store.model.Store;
 import io.quarkus.panache.common.Sort;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.context.control.ActivateRequestContext;
 import jakarta.inject.Named;
 import jakarta.transaction.Transactional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -29,5 +26,19 @@ public class StoreService {
     @Transactional
     public List<Store> getStores() {
         return Store.listAll(Sort.ascending("storeId"));
+    }
+
+    @Transactional
+    public void deleteStores() {
+        Store.deleteAll();
+    }
+
+    @Transactional
+    public HashMap addStore(Store store) {
+        store.persist();
+        return new HashMap() {{
+            put("storeId", store.getStoreId());
+            put("status", "success");
+        }};
     }
 }

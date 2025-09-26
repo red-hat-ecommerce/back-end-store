@@ -2,6 +2,7 @@ package com.redhat.ecommerce.store;
 
 import com.redhat.ecommerce.store.model.Store;
 import com.redhat.ecommerce.store.service.StoreService;
+import io.quarkus.arc.Arc;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.enterprise.context.control.ActivateRequestContext;
 import jakarta.inject.Inject;
@@ -13,6 +14,7 @@ import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -29,16 +31,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class ApiTest {
 
     @Inject
-    EntityManager entityManager;
-
-    @Inject
     StoreService storeService;
 
-    @BeforeEach
+    @BeforeAll
     @Transactional
-    void setup() {
-        // Clear any existing data
-        entityManager.createQuery("DELETE FROM Store").executeUpdate();
+    static void setup() {
+        StoreService storeService = Arc.container().instance(StoreService.class).get();
+        storeService.deleteStores();
 
         // Insert 4 random test stores
         Store store1 = new Store("STORE001", "Downtown Store");
@@ -46,10 +45,10 @@ public class ApiTest {
         Store store3 = new Store("STORE003", "Airport Store");
         Store store4 = new Store("STORE004", "Online Store");
 
-        entityManager.persist(store1);
-        entityManager.persist(store2);
-        entityManager.persist(store3);
-        entityManager.persist(store4);
+        storeService.addStore(store1);
+        storeService.addStore(store2);
+        storeService.addStore(store3);
+        storeService.addStore(store4);
     }
 
     @Test
@@ -72,10 +71,47 @@ public class ApiTest {
         given()
                 .log().all()
                 .when()
-                .   get("/api/store/")
+                    .get("/api/store/")
                 .then()
                     .log().all()
                     .statusCode(200)
                     .body("$", hasSize(4));
+    }
+
+    @Test
+    @Order(3)
+    @DisplayName("This test is to check if api create store is working as expected")
+    public void testCreateNewStore() {
+        given()
+            .log().all()
+            .contentType("application/json")
+            .body("{\n" +
+                    "  \"storeId\": \"STORE005\",\n" +
+                    "  \"storeName\": \"Test Store\"\n" +
+                    "}")
+            .when()
+                .post("/api/store/")
+            .then()
+                .log().all()
+                .statusCode(200);
+    }
+
+    @Test
+    @Order(4)
+    @DisplayName("This test is to check if api create store is working as expected when being hit with a wrong json format")
+    public void testCreateAWrongNewStore() {
+        given()
+                .log().all()
+                .contentType("application/json")
+                .body("{\n" +
+                        "  \"storeIdWrongParameter\": \"STORE006\",\n" +
+                        "  \"storeWrongParameter\": \"Test Store 6\"\n" +
+                        "}")
+                .when()
+                    .post("/api/store/")
+                .then()
+                    .log().all()
+                    .statusCode(400)
+                    .body("error", is("invalid structure or missing required fields"));
     }
 }
